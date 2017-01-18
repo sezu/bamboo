@@ -290,7 +290,7 @@ function builder(schema, opt) {
         });
     };
 
-    Construct.prototype.fetch = function(cb) {
+    Construct.prototype.fetch = function(query, cb) {
         var self = this;
 
         // nothing to fetch if we don't have an id
@@ -298,9 +298,15 @@ function builder(schema, opt) {
             return;
         }
 
+        if (typeof query === 'function') {
+            cb = query;
+            query = {}
+        }
+
         var sync_opt = {
             url: self.url_root + '/' + self[id_param],
-            method: 'GET'
+            method: 'GET',
+            query: query,
         };
 
         sync(sync_opt, function(err, result) {
@@ -348,12 +354,18 @@ function builder(schema, opt) {
     /// Class functions
 
     // get a single Model instance by id
-    Construct.get = function(id, cb) {
+    Construct.get = function(id, query, cb) {
         var self = this;
+
+        if (typeof query === 'function') {
+            cb = query;
+            query = {}
+        }
 
         var sync_opt = {
             url: self.url_root + '/' + id,
-            method: 'GET'
+            method: 'GET',
+            query: query,
         };
 
         sync(sync_opt, function(err, result) {
