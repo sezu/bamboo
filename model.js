@@ -14,6 +14,7 @@ function builder(schema, opt) {
 
     // sync function for CRUD
     var sync = opt.sync;
+    var form_field = opt.form_field;
 
     var id_param = opt.id || 'id';
 
@@ -254,15 +255,23 @@ function builder(schema, opt) {
         return !self.is_new() && self._saved;
     };
 
-    Construct.prototype.save = function(cb) {
+    Construct.prototype.save = function(query, cb) {
         var self = this;
 
+        if (typeof query === 'function') {
+            cb = query;
+            query = {}
+        }
+
         cb = cb || function() {};
+
+        var body = (form_field && self[form_field]) || self;
 
         var sync_opt = {
             url: self.url,
             method: 'PUT',
-            body: self
+            body: body,
+            query: query,
         };
 
         var is_new = self.is_new();
@@ -290,7 +299,7 @@ function builder(schema, opt) {
         });
     };
 
-    Construct.prototype.fetch = function(cb) {
+    Construct.prototype.fetch = function(query, cb) {
         var self = this;
 
         // nothing to fetch if we don't have an id
@@ -298,9 +307,15 @@ function builder(schema, opt) {
             return;
         }
 
+        if (typeof query === 'function') {
+            cb = query;
+            query = {}
+        }
+
         var sync_opt = {
             url: self.url_root + '/' + self[id_param],
-            method: 'GET'
+            method: 'GET',
+            query: query,
         };
 
         sync(sync_opt, function(err, result) {
@@ -348,12 +363,18 @@ function builder(schema, opt) {
     /// Class functions
 
     // get a single Model instance by id
-    Construct.get = function(id, cb) {
+    Construct.get = function(id, query, cb) {
         var self = this;
+
+        if (typeof query === 'function') {
+            cb = query;
+            query = {}
+        }
 
         var sync_opt = {
             url: self.url_root + '/' + id,
-            method: 'GET'
+            method: 'GET',
+            query: query,
         };
 
         sync(sync_opt, function(err, result) {
